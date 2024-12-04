@@ -1,8 +1,11 @@
 import bcrypt
 from flask import Blueprint, request, jsonify
 from db.db_pool import get_connection, release_connection
+from flask_jwt_extended import create_access_token
+from datetime import timedelta
 
 auth = Blueprint('auth',__name__)
+
 
 @auth.route('/api/signup', methods=['POST'])
 def signup():
@@ -15,7 +18,6 @@ def signup():
             return jsonify({ 'message': 'Password must be 20 characters or less.' }), 400
         if len(req['role']) > 20:
             return jsonify({ 'message': 'Role must be 20 characters or less.' }), 400
-
 
         conn, cursor = get_connection()
         cursor.execute('SELECT id FROM users WHERE username=%s', (req['username'],))
@@ -33,4 +35,36 @@ def signup():
     finally:
         if conn:
             release_connection(conn)
+
+
+@auth.route('/api/signin', methods=['POST'])
+def signin():
+    conn = None
+    try:
+        req = request.get_json()
+        if len(req['username']) > 20:
+            return jsonify({ 'message': 'Username must be 20 characters or less.' }), 400
+        if len(req['password']) > 20:
+            return jsonify({ 'message': 'Password must be 20 characters or less.' }), 400
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, username, password, role, manager FROM users WHERE username=%s', (req['username'],))
+        user = cursor.fetchone()
+        if not user:
+            return jsonify({ 'message': 'Incorrect username or password.' }), 401
+
+        is_valid_password = bcrypt.checkpw(req['password'].encode('utf-8'), user['password'].encode('utf-8'))
+        if not is_valid_password:
+            return jsonify({ 'message': 'Incorrect username or password.' }), 401
+
+        claims = { 'id': user['id'], 'username': user['username'], 'role': user['role'], 'manager': user['manager'] }
+        token = create_access_token(identity=user['id'], additional_claims=claims, expires_delta=timedelta(hours=1))
+        return jsonify({ 'token': token, 'role': user['role'] }), 200
+    except Exception as error:
+        print (error)
+        return jsonify({ 'message': 'Failed to signin user.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)
+
 

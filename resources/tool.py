@@ -129,3 +129,30 @@ def update_tool(tool_id):
             release_connection(conn)
 
 
+@tool.route('/api/tool/<tool_id>', methods=['DELETE'])
+@jwt_required()
+def delete_tool(tool_id):
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'manager':
+            return jsonify({ 'message': 'You are not manager.' }), 403
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, name, description, brand, image, manager, worker, approved FROM tools WHERE id=%s', (tool_id,))
+        tool_one = cursor.fetchone()
+        if not tool_one:
+            return jsonify({ 'message': 'No tool found.' }), 404
+
+        if tool_one['manager'] != jwt_user['id']:
+            return jsonify({ 'message': 'Unauthorized to delete.' }), 403
+
+        cursor.execute('DELETE FROM tools WHERE id=%s', (tool_id,))
+        conn.commit()
+        return jsonify({ 'message': 'Tool deleted.' }), 200
+    except Exception as error:
+        print (error)
+        return jsonify({ 'message': 'Failed to delete tool.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)

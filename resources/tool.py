@@ -62,4 +62,34 @@ def read_tools():
             release_connection(conn)
 
 
+@tool.route('/api/tool/<tool_id>', methods=['GET'])
+@jwt_required()
+def read_tool(tool_id):
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'manager' and jwt_user['role'] != 'worker':
+            return jsonify({ 'message': 'You are not manager or worker.' }), 403
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, name, description, brand, image, manager, worker, approved FROM tools WHERE id=%s', (tool_id,))
+        tool_one = cursor.fetchone()
+        if not tool_one:
+            return jsonify({ 'message': 'No tool found.' }), 404
+
+        if jwt_user['role'] == 'manager' and tool_one['manager'] != jwt_user['id']:
+            return jsonify({ 'message': 'Unauthorized to read.' }), 403
+
+        if jwt_user['role'] == 'worker' and tool_one['manager'] != jwt_user['manager']:
+            return jsonify({ 'message': 'Unauthorized to read.' }), 403
+
+        return jsonify(tool_one), 200
+    except Exception as error:
+        print (error)
+        return jsonify({ 'message': 'Failed to read tool.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)
+
+
 

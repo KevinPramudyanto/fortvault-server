@@ -35,3 +35,31 @@ def create_tool():
         if conn:
             release_connection(conn)
 
+
+@tool.route('/api/tool', methods=['GET'])
+@jwt_required()
+def read_tools():
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        manager = None
+        if jwt_user['role'] == 'manager':
+            manager = jwt_user['id']
+        elif jwt_user['role'] == 'worker':
+            manager = jwt_user['manager']
+        else:
+            return jsonify({ 'message': 'You are not manager or worker.' }), 403
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, name, description, brand, image, manager, worker, approved FROM tools WHERE manager=%s ORDER BY name', (manager,))
+        tools = cursor.fetchall()
+        return jsonify(tools), 200
+    except Exception as error:
+        print (error)
+        return jsonify({ 'message': 'Failed to read tools.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)
+
+
+

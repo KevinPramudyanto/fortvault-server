@@ -92,4 +92,40 @@ def read_tool(tool_id):
             release_connection(conn)
 
 
+@tool.route('/api/tool/<tool_id>', methods=['PATCH'])
+@jwt_required()
+def update_tool(tool_id):
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'manager':
+            return jsonify({ 'message': 'You are not manager.' }), 403
+
+        req = request.get_json()
+        if len(req['name']) < 1 or len(req['name']) > 50:
+            return jsonify({ 'message': 'Name must be between 1-50 characters.' }), 400
+        if len(req['description']) < 1 or len(req['description']) > 200:
+            return jsonify({ 'message': 'Description must be between 1-200 characters.' }), 400
+        if len(req['brand']) < 1 or len(req['brand']) > 50:
+            return jsonify({ 'message': 'Brand must be between 1-50 characters.' }), 400
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, name, description, brand, image, manager, worker, approved FROM tools WHERE id=%s', (tool_id,))
+        tool_one = cursor.fetchone()
+        if not tool_one:
+            return jsonify({ 'message': 'No tool found.' }), 404
+
+        if tool_one['manager'] != jwt_user['id']:
+            return jsonify({ 'message': 'Unauthorized to update.' }), 403
+
+        cursor.execute('UPDATE tools SET name=%s, description=%s, brand=%s WHERE id=%s', (req['name'], req['description'], req['brand'], tool_id))
+        conn.commit()
+        return jsonify({ 'message': 'Tool updated.' }), 200
+    except Exception as error:
+        print (error)
+        return jsonify({ 'message': 'Failed to update tool.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)
+
 

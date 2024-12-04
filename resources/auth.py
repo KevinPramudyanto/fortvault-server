@@ -12,12 +12,12 @@ def signup():
     conn = None
     try:
         req = request.get_json()
-        if len(req['username']) > 20:
-            return jsonify({ 'message': 'Username must be 20 characters or less.' }), 400
-        if len(req['password']) > 20:
-            return jsonify({ 'message': 'Password must be 20 characters or less.' }), 400
-        if len(req['role']) > 20:
-            return jsonify({ 'message': 'Role must be 20 characters or less.' }), 400
+        if len(req['username']) < 1 or len(req['username']) > 20:
+            return jsonify({ 'message': 'Username must be between 1-20 characters.' }), 400
+        if len(req['password']) < 1 or len(req['password']) > 20:
+            return jsonify({ 'message': 'Password must be between 1-20 characters.' }), 400
+        if len(req['role']) < 1 or len(req['role']) > 10:
+            return jsonify({ 'message': 'Role must be between 1-10 characters.' }), 400
 
         conn, cursor = get_connection()
         cursor.execute('SELECT id FROM users WHERE username=%s', (req['username'],))
@@ -42,10 +42,10 @@ def signin():
     conn = None
     try:
         req = request.get_json()
-        if len(req['username']) > 20:
-            return jsonify({ 'message': 'Username must be 20 characters or less.' }), 400
-        if len(req['password']) > 20:
-            return jsonify({ 'message': 'Password must be 20 characters or less.' }), 400
+        if len(req['username']) < 1 or len(req['username']) > 20:
+            return jsonify({ 'message': 'Username must be between 1-20 characters.' }), 400
+        if len(req['password']) < 1 or len(req['password']) > 20:
+            return jsonify({ 'message': 'Password must be between 1-20 characters.' }), 400
 
         conn, cursor = get_connection()
         cursor.execute('SELECT id, username, password, role, manager FROM users WHERE username=%s', (req['username'],))

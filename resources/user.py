@@ -57,3 +57,32 @@ def get_workers():
     finally:
         if conn:
             release_connection(conn)
+
+
+@user.route('/api/user/remove/<user_id>', methods=['GET'])
+@jwt_required()
+def remove_worker(user_id):
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'manager':
+            return jsonify({ 'message': 'You are not manager.' }), 403
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, manager FROM users WHERE id=%s', (user_id,))
+        user_one = cursor.fetchone()
+        if not user_one:
+            return jsonify({ 'message': 'No worker found.' }), 404
+
+        if user_one['manager'] != jwt_user['id']:
+            return jsonify({ 'message': 'Unauthorized to remove.' }), 403
+
+        cursor.execute('UPDATE users SET manager=%s WHERE id=%s', (None, user_one['id']))
+        conn.commit()
+        return jsonify({ 'message': 'Worker removed.' }), 200
+    except Exception as error:
+        print (error)
+        return jsonify({ 'message': 'Failed to remove worker.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)

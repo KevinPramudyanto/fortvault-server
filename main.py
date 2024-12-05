@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from resources.auth import auth
 from resources.tool import tool
+from resources.user import user
 
 app = Flask(__name__)
 CORS(app)
@@ -12,6 +13,7 @@ jwt = JWTManager(app)
 
 app.register_blueprint(auth)
 app.register_blueprint(tool)
+app.register_blueprint(user)
 
 if __name__ == '__main__':
     app.run(port=5001,debug=True)

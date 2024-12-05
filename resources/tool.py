@@ -62,6 +62,70 @@ def read_tools():
             release_connection(conn)
 
 
+@tool.route('/api/tool/add/<tool_id>', methods=['GET'])
+@jwt_required()
+def add_tool(tool_id):
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'worker':
+            return jsonify({ 'message': 'You are not worker.' }), 403
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, name, description, brand, image, manager, worker, approved FROM tools WHERE id=%s', (tool_id,))
+        tool_one = cursor.fetchone()
+        if not tool_one:
+            return jsonify({ 'message': 'No tool found.' }), 404
+
+        if tool_one['manager'] != jwt_user['manager']:
+            return jsonify({ 'message': 'Unauthorized to add.' }), 403
+
+        if tool_one['worker']:
+            return jsonify({ 'message': 'Unauthorized to add.' }), 403
+
+        cursor.execute('UPDATE tools SET worker=%s, approved=%s WHERE id=%s', (jwt_user['id'], False, tool_id))
+        conn.commit()
+        return jsonify({ 'message': 'Tool added.' }), 200
+    except Exception as error:
+        print(error)
+        return jsonify({ 'message': 'Failed to add tool.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)
+
+
+@tool.route('/api/tool/remove/<tool_id>', methods=['GET'])
+@jwt_required()
+def remove_tool(tool_id):
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'worker':
+            return jsonify({ 'message': 'You are not worker.' }), 403
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, name, description, brand, image, manager, worker, approved FROM tools WHERE id=%s', (tool_id,))
+        tool_one = cursor.fetchone()
+        if not tool_one:
+            return jsonify({ 'message': 'No tool found.' }), 404
+
+        if tool_one['manager'] != jwt_user['manager']:
+            return jsonify({ 'message': 'Unauthorized to remove.' }), 403
+
+        if tool_one['worker'] != jwt_user['id']:
+            return jsonify({ 'message': 'Unauthorized to remove.' }), 403
+
+        cursor.execute('UPDATE tools SET worker=%s, approved=%s WHERE id=%s', (None, True, tool_id))
+        conn.commit()
+        return jsonify({ 'message': 'Tool removed.' }), 200
+    except Exception as error:
+        print(error)
+        return jsonify({ 'message': 'Failed to remove tool.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)
+
+
 @tool.route('/api/tool/<tool_id>', methods=['GET'])
 @jwt_required()
 def read_tool(tool_id):

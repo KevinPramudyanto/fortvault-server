@@ -36,3 +36,24 @@ def add_worker():
     finally:
         if conn:
             release_connection(conn)
+
+
+@user.route('/api/user/get', methods=['GET'])
+@jwt_required()
+def get_workers():
+    conn = None
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'manager':
+            return jsonify({ 'message': 'You are not manager.' }), 403
+
+        conn, cursor = get_connection()
+        cursor.execute('SELECT id, username FROM users WHERE role=%s AND manager=%s', ('worker', jwt_user['id']))
+        users = cursor.fetchall()
+        return jsonify(users), 200
+    except Exception as error:
+        print (error)
+        return jsonify({ 'message': 'Failed to get your workers.' }), 500
+    finally:
+        if conn:
+            release_connection(conn)

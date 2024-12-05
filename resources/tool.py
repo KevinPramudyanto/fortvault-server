@@ -29,7 +29,7 @@ def create_tool():
         conn.commit()
         return jsonify({ 'message': 'Tool created.' }), 201
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to create tool.' }), 500
     finally:
         if conn:
@@ -55,7 +55,7 @@ def read_tools():
         tools = cursor.fetchall()
         return jsonify(tools), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to read tools.' }), 500
     finally:
         if conn:
@@ -85,7 +85,7 @@ def read_tool(tool_id):
 
         return jsonify(tool_one), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to read tool.' }), 500
     finally:
         if conn:
@@ -122,7 +122,7 @@ def update_tool(tool_id):
         conn.commit()
         return jsonify({ 'message': 'Tool updated.' }), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to update tool.' }), 500
     finally:
         if conn:
@@ -151,7 +151,7 @@ def delete_tool(tool_id):
         conn.commit()
         return jsonify({ 'message': 'Tool deleted.' }), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to delete tool.' }), 500
     finally:
         if conn:

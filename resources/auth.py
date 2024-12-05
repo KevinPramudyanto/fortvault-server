@@ -30,7 +30,7 @@ def signup():
         conn.commit()
         return jsonify({ 'message': 'User created.' }), 201
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to signup user.' }), 500
     finally:
         if conn:
@@ -61,7 +61,7 @@ def signin():
         token = create_access_token(identity=user['id'], additional_claims=claims, expires_delta=timedelta(hours=1))
         return jsonify({ 'token': token, 'role': user['role'] }), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to signin user.' }), 500
     finally:
         if conn:

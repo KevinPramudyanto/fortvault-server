@@ -31,7 +31,7 @@ def add_worker():
         conn.commit()
         return jsonify({ 'message': 'Worker added.' }), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to add worker.' }), 500
     finally:
         if conn:
@@ -52,7 +52,7 @@ def get_workers():
         users = cursor.fetchall()
         return jsonify(users), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to get your workers.' }), 500
     finally:
         if conn:
@@ -81,7 +81,7 @@ def remove_worker(user_id):
         conn.commit()
         return jsonify({ 'message': 'Worker removed.' }), 200
     except Exception as error:
-        print (error)
+        print(error)
         return jsonify({ 'message': 'Failed to remove worker.' }), 500
     finally:
         if conn:

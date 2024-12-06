@@ -44,11 +44,16 @@ def get_workers():
     conn = None
     try:
         jwt_user = get_jwt()
-        if jwt_user['role'] != 'manager':
-            return jsonify({ 'message': 'You are not manager.' }), 403
+        manager = None
+        if jwt_user['role'] == 'manager':
+            manager = jwt_user['id']
+        elif jwt_user['role'] == 'worker':
+            manager = jwt_user['manager']
+        else:
+            return jsonify({ 'message': 'You are not manager or worker.' }), 403
 
         conn, cursor = get_connection()
-        cursor.execute('SELECT id, username FROM users WHERE role=%s AND manager=%s', ('worker', jwt_user['id']))
+        cursor.execute('SELECT id, username FROM users WHERE role=%s AND manager=%s', ('worker', manager))
         users = cursor.fetchall()
         return jsonify(users), 200
     except Exception as error:

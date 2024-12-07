@@ -82,6 +82,11 @@ def remove_worker(user_id):
         if user_one['manager'] != jwt_user['id']:
             return jsonify({ 'message': 'Unauthorized to remove.' }), 403
 
+        cursor.execute('SELECT id FROM tools WHERE worker=%s', (user_one['id'],))
+        tool_one = cursor.fetchone()
+        if tool_one:
+            return jsonify({ 'message': 'Unable to remove before user returns their tools.' }), 422
+
         cursor.execute('UPDATE users SET manager=%s WHERE id=%s', (None, user_one['id']))
         conn.commit()
         return jsonify({ 'message': 'Worker removed.' }), 200

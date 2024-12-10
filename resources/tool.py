@@ -141,6 +141,7 @@ def remove_tool(tool_id):
             return jsonify({ 'message': 'Unauthorized to remove.' }), 403
 
         cursor.execute('UPDATE tools SET worker=%s, approved=%s WHERE id=%s', (None, True, tool_id))
+        cursor.execute('UPDATE logs SET returned_at = CURRENT_TIMESTAMP WHERE worker_username=%s AND tool_name=%s AND returned_at IS NULL', (jwt_user['username'], tool_one['name']))
         conn.commit()
         return jsonify({ 'message': 'Tool removed.' }), 200
     except Exception as error:
@@ -172,7 +173,11 @@ def approve_tool(tool_id):
         if tool_one['approved']:
             return jsonify({ 'message': 'Unauthorized to approve.' }), 403
 
+        cursor.execute('SELECT id, username FROM users WHERE id=%s', (tool_one['worker'],))
+        user_one = cursor.fetchone()
+
         cursor.execute('UPDATE tools SET approved=%s WHERE id=%s', (True, tool_id))
+        cursor.execute('INSERT INTO logs (worker_username, tool_name, manager) VALUES (%s, %s, %s)', (user_one['username'], tool_one['name'], tool_one['manager']))
         conn.commit()
         return jsonify({ 'message': 'Tool approved.' }), 200
     except Exception as error:
@@ -271,6 +276,12 @@ def update_tool(tool_id):
         if tool_one['manager'] != jwt_user['id']:
             return jsonify({ 'message': 'Unauthorized to update.' }), 403
 
+        if not tool_one['approved']:
+            return jsonify({ 'message': 'Unable to update before approving/rejecting tool.' }), 422
+
+        if tool_one['worker']:
+            return jsonify({ 'message': 'Unable to update before worker returning tool.' }), 422
+
         cursor.execute('UPDATE tools SET name=%s, description=%s, brand=%s WHERE id=%s', (req['name'], req['description'], req['brand'], tool_id))
         conn.commit()
         return jsonify({ 'message': 'Tool updated.' }), 200
@@ -299,6 +310,12 @@ def delete_tool(tool_id):
 
         if tool_one['manager'] != jwt_user['id']:
             return jsonify({ 'message': 'Unauthorized to delete.' }), 403
+
+        if not tool_one['approved']:
+            return jsonify({ 'message': 'Unable to delete before approving/rejecting tool.' }), 422
+
+        if tool_one['worker']:
+            return jsonify({ 'message': 'Unable to delete before worker returning tool.' }), 422
 
         cursor.execute('DELETE FROM tools WHERE id=%s', (tool_id,))
         conn.commit()

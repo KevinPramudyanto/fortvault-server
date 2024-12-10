@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS tools CASCADE;
+DROP TABLE IF EXISTS logs CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -23,6 +24,16 @@ CREATE TABLE tools (
 	CONSTRAINT fk_manager FOREIGN KEY(manager) REFERENCES users(id),
 	CONSTRAINT fk_worker FOREIGN KEY(worker) REFERENCES users(id)
 );
+CREATE TABLE logs (
+    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+    worker_username varchar(20) NOT NULL,
+    tool_name varchar(50) NOT NULL,
+    manager uuid NOT NULL,
+    borrowed_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    returned_at timestamp,
+	CONSTRAINT fk_manager FOREIGN KEY(manager) REFERENCES users(id)
+);
 
 SELECT * FROM users;
 SELECT * FROM tools;
+SELECT * FROM logs;

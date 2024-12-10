@@ -1,8 +1,33 @@
+import os
+import requests
 from flask import Blueprint, request, jsonify
 from db.db_pool import get_connection, release_connection
 from flask_jwt_extended import jwt_required, get_jwt
 
 tool = Blueprint('tool',__name__)
+
+
+@tool.route('/api/uploadtool', methods=['POST'])
+@jwt_required()
+def upload_tool():
+    try:
+        jwt_user = get_jwt()
+        if jwt_user['role'] != 'manager':
+            return jsonify({'message': 'You are not manager.'}), 403
+
+        file = request.files['file']
+        if not file:
+            return jsonify({ 'message': 'Image is required.' }), 400
+
+        r = requests.post(f"https://api.cloudinary.com/v1_1/{os.environ['CLOUD_NAME']}/image/upload", files={'file':file}, data={'upload_preset':os.environ['UPLOAD_PRESET']})
+
+        if r.status_code != 200:
+            return jsonify({ 'message': 'Failed to upload tool.' }), 500
+
+        return jsonify({ 'public_id': r.json()['public_id'] }), 200
+    except Exception as error:
+        print(error)
+        return jsonify({ 'message': 'Failed to upload tool.' }), 500
 
 
 @tool.route('/api/tool', methods=['POST'])

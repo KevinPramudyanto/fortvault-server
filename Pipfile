@@ -9,7 +9,6 @@ psycopg2-binary = "*"
 flask-jwt-extended = "*"
 bcrypt = "*"
 flask-cors = "*"
-flask-socketio = "*"
 requests = "*"
 
 [dev-packages]

@@ -12,18 +12,20 @@ CREATE TABLE users (
     manager uuid,
 	CONSTRAINT fk_manager FOREIGN KEY(manager) REFERENCES users(id)
 );
+
 CREATE TABLE tools (
     id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
     name varchar(50) NOT NULL,
     description varchar(200) NOT NULL,
     brand varchar(50) NOT NULL,
-	image varchar(50) NOT NULL,
+	image varchar(100) NOT NULL,
     manager uuid NOT NULL,
     worker uuid,
 	approved boolean NOT NULL,
 	CONSTRAINT fk_manager FOREIGN KEY(manager) REFERENCES users(id),
 	CONSTRAINT fk_worker FOREIGN KEY(worker) REFERENCES users(id)
 );
+
 CREATE TABLE logs (
     id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
     worker_username varchar(20) NOT NULL,

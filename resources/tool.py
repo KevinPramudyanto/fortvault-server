@@ -46,8 +46,8 @@ def create_tool():
             return jsonify({ 'message': 'Description must be between 1-200 characters.' }), 400
         if len(req['brand']) < 1 or len(req['brand']) > 50:
             return jsonify({ 'message': 'Brand must be between 1-50 characters.' }), 400
-        if len(req['image']) < 1 or len(req['image']) > 50:
-            return jsonify({ 'message': 'Image must be between 1-50 characters.' }), 400
+        if len(req['image']) < 1 or len(req['image']) > 100:
+            return jsonify({ 'message': 'Image must be between 1-100 characters.' }), 400
 
         conn, cursor = get_connection()
         cursor.execute('INSERT INTO tools (name, description, brand, image, manager, worker, approved) VALUES (%s, %s, %s, %s, %s, %s, %s)', (req['name'], req['description'], req['brand'], req['image'], jwt_user['id'], None, True))

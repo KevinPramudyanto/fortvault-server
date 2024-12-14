@@ -1,5 +1,5 @@
 # FortVault Server
 
-This repository is for the backend of FortVault application.
+Welcome to the backend repository for the FortVault application — a robust inventory management system tailored for field workers and store managers. This server handles authentication, data processing, and interaction with the PostgreSQL database.
 
-The link to the frontend repository can be found here: [FortVault](https://github.com/KevinPramudyanto/fortvault)
+The corresponding frontend repository is located here: [FortVault](https://github.com/KevinPramudyanto/fortvault)
